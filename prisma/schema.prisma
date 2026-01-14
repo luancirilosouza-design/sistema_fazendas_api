@@ -1,0 +1,17 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Fazenda {
+  id          String   @id @default(uuid())
+  nome        String
+  localidade  String?
+  cep         String?
+  area        Float?
+  createdAt   DateTime @default(now())
+}

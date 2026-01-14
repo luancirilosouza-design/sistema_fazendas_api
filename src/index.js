@@ -3,10 +3,13 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
+const { PrismaClient } = require("@prisma/client");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+const prisma = new PrismaClient();
 
 const PORT = process.env.PORT || 3333;
 
@@ -37,7 +40,7 @@ app.get("/", (req, res) => {
   res.json({ ok: true, service: "API Sistema Fazendas" });
 });
 
-// Login real
+// Login real (retorna JWT)
 app.post("/login", (req, res) => {
   const { usuario, senha } = req.body;
 
@@ -49,9 +52,44 @@ app.post("/login", (req, res) => {
   return res.json({ token });
 });
 
-// Exemplo de rota protegida (teste)
-app.get("/privado", autenticarToken, (req, res) => {
-  res.json({ message: "Acesso autorizado!", user: req.user });
+// ✅ Cadastrar fazenda (protegido)
+app.post("/fazendas", autenticarToken, async (req, res) => {
+  try {
+    const { nome, localidade, cep, area } = req.body;
+
+    if (!nome || String(nome).trim().length < 2) {
+      return res.status(400).json({ message: "Nome da fazenda é obrigatório." });
+    }
+
+    const fazenda = await prisma.fazenda.create({
+      data: {
+        nome: String(nome).trim(),
+        localidade: localidade ? String(localidade).trim() : null,
+        cep: cep ? String(cep).trim() : null,
+        area:
+          area !== undefined && area !== null && area !== ""
+            ? Number(area)
+            : null,
+      },
+    });
+
+    return res.status(201).json(fazenda);
+  } catch (err) {
+    return res.status(500).json({ message: "Erro ao cadastrar fazenda." });
+  }
+});
+
+// ✅ Listar fazendas (protegido)
+app.get("/fazendas", autenticarToken, async (req, res) => {
+  try {
+    const fazendas = await prisma.fazenda.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+
+    return res.json(fazendas);
+  } catch (err) {
+    return res.status(500).json({ message: "Erro ao listar fazendas." });
+  }
 });
 
 app.listen(PORT, () => {
