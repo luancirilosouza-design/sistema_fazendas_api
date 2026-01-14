@@ -8,10 +8,23 @@ datasource db {
 }
 
 model Fazenda {
-  id          String   @id @default(uuid())
-  nome        String
-  localidade  String?
-  cep         String?
-  area        Float?
-  createdAt   DateTime @default(now())
+  id               String   @id @default(uuid())
+
+  numeroCarEstadual String?
+  nome             String
+  ie               String?
+  cep              String?
+
+  areaTotalHa      Float?
+  areaPlantadaHa   Float?
+
+  // ⚠️ MVP: vamos guardar as imagens como "data URL (base64)" em um array
+  // Depois a gente troca para storage (Cloudinary/S3/Supabase) sem mudar a tela.
+  mapaFazenda      String[] @default([])
+
+  observacoes      String?
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
+
