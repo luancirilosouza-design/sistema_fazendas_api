@@ -7,7 +7,7 @@ const { PrismaClient } = require("@prisma/client");
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "15mb" }));
 
 const prisma = new PrismaClient();
 
@@ -74,10 +74,14 @@ app.post("/fazendas", autenticarToken, async (req, res) => {
     });
 
     return res.status(201).json(fazenda);
-  } catch (err) {
-    return res.status(500).json({ message: "Erro ao cadastrar fazenda." });
+    } catch (err) {
+    console.error("ERRO CADASTRAR FAZENDA:", err);
+    return res.status(500).json({
+      message: "Erro ao cadastrar fazenda.",
+      detail: String(err?.message || err),
+    });
   }
-});
+
 
 // ✅ Listar fazendas (protegido)
 app.get("/fazendas", autenticarToken, async (req, res) => {
